@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Gestion de Stock</title>
+  <link rel="stylesheet" href="/static/css/style.css"/>
+</head>
+<body>
+
+  <nav class="sidebar">
+    <div class="sidebar-brand">📦 StockSI</div>
+    <ul>
+      <li class="active" onclick="showTab('dashboard')">📊 Dashboard</li>
+      <li onclick="showTab('produits')">🏷️ Produits</li>
+      <li onclick="showTab('mouvements')">🔄 Mouvements</li>
+      <li onclick="showTab('categories')">📂 Catégories</li>
+      <li onclick="showTab('fournisseurs')">🏭 Fournisseurs</li>
+    </ul>
+  </nav>
+
+  <main class="main">
+
+    <!-- DASHBOARD -->
+    <section id="tab-dashboard" class="tab active">
+      <h1>Tableau de bord</h1>
+      <div class="stats">
+        <div class="stat blue"><div class="stat-num" id="s-produits">—</div><div class="stat-lbl">Produits</div></div>
+        <div class="stat green"><div class="stat-num" id="s-valeur">—</div><div class="stat-lbl">Valeur stock (TND)</div></div>
+        <div class="stat orange"><div class="stat-num" id="s-alertes">—</div><div class="stat-lbl">Alertes stock bas</div></div>
+        <div class="stat purple"><div class="stat-num" id="s-cats">—</div><div class="stat-lbl">Catégories</div></div>
+      </div>
+      <div class="card mt">
+        <h3>⚠️ Produits en alerte de stock</h3>
+        <table class="tbl" id="tbl-alertes">
+          <thead><tr><th>Réf.</th><th>Nom</th><th>Stock</th><th>Seuil</th><th>Action</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- PRODUITS -->
+    <section id="tab-produits" class="tab">
+      <div class="page-hd">
+        <h1>Produits</h1>
+        <div style="display:flex;gap:.5rem">
+          <input id="search-produit" class="search" placeholder="🔍 Rechercher..." oninput="searchProduits()" />
+          <button class="btn primary" onclick="openModal('modal-produit')">+ Ajouter</button>
+        </div>
+      </div>
+      <div class="card">
+        <table class="tbl" id="tbl-produits">
+          <thead><tr><th>Réf.</th><th>Nom</th><th>Catégorie</th><th>Prix</th><th>Stock</th><th>Statut</th><th>Actions</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- MOUVEMENTS -->
+    <section id="tab-mouvements" class="tab">
+      <h1>Historique des mouvements</h1>
+      <div class="card">
+        <table class="tbl" id="tbl-mouvements">
+          <thead><tr><th>Horodatage</th><th>Produit</th><th>Type</th><th>Quantité</th><th>Avant</th><th>Après</th><th>Motif</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- CATEGORIES -->
+    <section id="tab-categories" class="tab">
+      <div class="page-hd">
+        <h1>Catégories</h1>
+        <button class="btn primary" onclick="openModal('modal-cat')">+ Ajouter</button>
+      </div>
+      <div class="card">
+        <table class="tbl" id="tbl-cats">
+          <thead><tr><th>Nom</th><th>Description</th><th>Nb produits</th><th>Actions</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- FOURNISSEURS -->
+    <section id="tab-fournisseurs" class="tab">
+      <div class="page-hd">
+        <h1>Fournisseurs</h1>
+        <button class="btn primary" onclick="openModal('modal-four')">+ Ajouter</button>
+      </div>
+      <div class="card">
+        <table class="tbl" id="tbl-fours">
+          <thead><tr><th>Nom</th><th>Email</th><th>Téléphone</th><th>Actions</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Modal Produit -->
+  <div id="modal-produit" class="modal hidden">
+    <div class="mbox">
+      <div class="mhdr"><h3>Ajouter un produit</h3><button onclick="closeModal('modal-produit')">✕</button></div>
+      <div class="frow"><div class="fg"><label>Référence *</label><input id="p-ref"/></div><div class="fg"><label>Nom *</label><input id="p-nom"/></div></div>
+      <div class="frow"><div class="fg"><label>Prix unitaire (TND) *</label><input id="p-prix" type="number" step="0.01"/></div><div class="fg"><label>Stock initial</label><input id="p-qte" type="number" value="0"/></div></div>
+      <div class="frow"><div class="fg"><label>Seuil alerte</label><input id="p-seuil" type="number" value="5"/></div><div class="fg"><label>Catégorie</label><select id="p-cat"></select></div></div>
+      <div class="fg"><label>Description</label><textarea id="p-desc" rows="2"></textarea></div>
+      <div class="mftr"><button class="btn" onclick="closeModal('modal-produit')">Annuler</button><button class="btn primary" onclick="createProduit()">Créer</button></div>
+    </div>
+  </div>
+
+  <!-- Modal Mouvement -->
+  <div id="modal-mouvement" class="modal hidden">
+    <div class="mbox">
+      <div class="mhdr"><h3 id="mv-title">Mouvement de stock</h3><button onclick="closeModal('modal-mouvement')">✕</button></div>
+      <input type="hidden" id="mv-produit-id"/>
+      <div class="fg"><label>Type</label>
+        <select id="mv-type">
+          <option value="entree">Entrée</option>
+          <option value="sortie">Sortie</option>
+          <option value="ajustement">Ajustement</option>
+        </select>
+      </div>
+      <div class="fg"><label>Quantité *</label><input id="mv-qte" type="number" min="1"/></div>
+      <div class="fg"><label>Motif</label><input id="mv-motif"/></div>
+      <div class="mftr"><button class="btn" onclick="closeModal('modal-mouvement')">Annuler</button><button class="btn primary" onclick="doMouvement()">Valider</button></div>
+    </div>
+  </div>
+
+  <!-- Modal Catégorie -->
+  <div id="modal-cat" class="modal hidden">
+    <div class="mbox">
+      <div class="mhdr"><h3>Ajouter une catégorie</h3><button onclick="closeModal('modal-cat')">✕</button></div>
+      <div class="fg"><label>Nom *</label><input id="cat-nom"/></div>
+      <div class="fg"><label>Description</label><input id="cat-desc"/></div>
+      <div class="mftr"><button class="btn" onclick="closeModal('modal-cat')">Annuler</button><button class="btn primary" onclick="createCategorie()">Créer</button></div>
+    </div>
+  </div>
+
+  <!-- Modal Fournisseur -->
+  <div id="modal-four" class="modal hidden">
+    <div class="mbox">
+      <div class="mhdr"><h3>Ajouter un fournisseur</h3><button onclick="closeModal('modal-four')">✕</button></div>
+      <div class="fg"><label>Nom *</label><input id="four-nom"/></div>
+      <div class="frow"><div class="fg"><label>Email</label><input id="four-email" type="email"/></div><div class="fg"><label>Téléphone</label><input id="four-tel"/></div></div>
+      <div class="mftr"><button class="btn" onclick="closeModal('modal-four')">Annuler</button><button class="btn primary" onclick="createFournisseur()">Créer</button></div>
+    </div>
+  </div>
+
+  <script src="/static/js/app.js"></script>
+</body>
+</html>
